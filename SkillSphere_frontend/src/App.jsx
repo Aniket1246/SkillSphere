@@ -14,6 +14,7 @@ import SmartNotes from './pages/SmartNotes';
 import VoiceFeedback from './pages/VoiceFeedback';
 import Home from './pages/Home';
 import ResumeAnalyzer from './pages/ResumeAnalyzer';
+import ResumeBuilder from './pages/ResumeBuilder';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import LoginModal from './components/LoginModal';
 
@@ -71,7 +72,7 @@ function App() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         {/* Pass the user object and theme handlers to the Navbar */}
         <Navbar user={user} theme={theme} toggleTheme={toggleTheme} />
-        
+
         <main className="flex-1">
           <Routes>
             {/* Pass the user object to the Home component */}
@@ -82,6 +83,7 @@ function App() {
             <Route path="/smartnotes" element={<SmartNotes />} />
             <Route path="/voicefeedback" element={<VoiceFeedback user={user} />} />
             <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
+            <Route path="/resume-builder" element={<ResumeBuilder />} />
             <Route
               path="/resourcevault"
               element={
@@ -102,13 +104,13 @@ function App() {
   );
 
   const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    setUser(null);
-  } catch (err) {
-    console.error("Logout error:", err.message);
-  }
-};
+    try {
+      await signOut(auth);
+      setUser(null);
+    } catch (err) {
+      console.error("Logout error:", err.message);
+    }
+  };
 }
 
 export default App;

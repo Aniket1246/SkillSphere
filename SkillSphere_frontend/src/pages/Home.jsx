@@ -17,6 +17,7 @@ import {
   Mic,
   FileText,
   BookOpen,
+  Sparkles,
 } from "lucide-react";
 
 function Home({ user }) {
@@ -73,6 +74,12 @@ function Home({ user }) {
       link: "/resume-analyzer"
     },
     {
+      title: "AI Resume Builder",
+      desc: "Generate ATS-optimized resumes with AI feedback & skill gap analysis.",
+      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
+      link: "/resume-builder"
+    },
+    {
       title: "Resource Vault",
       desc: "Discover, upvote, and manage useful resources together.",
       icon: <BookOpen className="w-6 h-6 text-purple-400" />,
@@ -115,44 +122,44 @@ function Home({ user }) {
   ];
   const [counts, setCounts] = useState(counters.map(() => 1));
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   useEffect(() => {
     let lastScrollTop = 0;
     let scrollTimeout = null;
     let hasTriggered = false;
-    
+
     const handleScroll = () => {
       if (!countersRef.current || isAnimating) return;
-      
+
       const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const rect = countersRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      
+
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
-      
+
       if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
         const isScrolling = Math.abs(currentScrollTop - lastScrollTop) > 10;
-        
+
         if (isScrolling && !hasTriggered) {
           hasTriggered = true;
           startCounterAnimation();
-          
+
           setTimeout(() => {
             hasTriggered = false;
           }, 3000);
         }
       }
-      
+
       lastScrollTop = currentScrollTop;
-      
-      scrollTimeout = setTimeout(() => {}, 150);
+
+      scrollTimeout = setTimeout(() => { }, 150);
     };
 
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (scrollTimeout) clearTimeout(scrollTimeout);
@@ -161,19 +168,19 @@ function Home({ user }) {
 
   const startCounterAnimation = () => {
     if (isAnimating) return;
-    
+
     setIsAnimating(true);
     setCounts(counters.map(() => 1));
-    
+
     const duration = 2000;
     const steps = 60;
     const stepDuration = duration / steps;
-    
+
     let currentStep = 0;
-    
+
     const animate = setInterval(() => {
       currentStep++;
-      
+
       setCounts((prev) => {
         const newCounts = prev.map((num, i) => {
           const target = counters[i].value;
@@ -181,19 +188,19 @@ function Home({ user }) {
           const currentValue = Math.floor(1 + (target - 1) * progress);
           return Math.min(currentValue, target);
         });
-        
+
         if (currentStep >= steps) {
           clearInterval(animate);
           setTimeout(() => {
             setIsAnimating(false);
           }, 10000);
         }
-        
+
         return newCounts;
       });
     }, stepDuration);
   };
-  
+
   const handleStartExploring = () => {
     if (user) {
       navigate('/careercrack');
@@ -215,7 +222,7 @@ function Home({ user }) {
   }
 
   return (
-  <div className="min-h-screen bg-white text-gray-900 dark:bg-[#0a0a14] dark:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-[#0a0a14] dark:text-white font-sans overflow-x-hidden">
       {/* Hero */}
       <section className="relative overflow-hidden py-24 px-6 lg:px-20 flex flex-col items-center text-center">
         <motion.div
@@ -272,7 +279,7 @@ function Home({ user }) {
                 whileHover={{ scale: 1.03 }}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3}}
+                transition={{ duration: 0.3 }}
                 viewport={{ once: true }}
                 className="bg-glass backdrop-blur-md p-6 rounded-xl border border-white/10 transition-[box-shadow,colors] duration-300 cursor-pointer flex flex-col justify-between h-full hover:shadow-2xl hover:border-white/20 hover:bg-white/5 text-gray-900 dark:text-white"
               >
@@ -293,22 +300,22 @@ function Home({ user }) {
           })}
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-purple-50 via-pink-50 to-indigo-50 dark:from-purple-900 dark:via-indigo-900 dark:to-blue-900 py-16 mt-12 rounded-lg shadow-lg transition-all duration-500">
         <div className="max-w-6xl mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12 px-6">
-         {/*Video Tutorial for Beginners */}
-        <div className="w-full md:w-1/2 flex justify-center md:justify-start">
-          <video
-          src="/tutorial.mp4"
-          alt="MoodMirror Tutorial"
-          className="w-full max-w-sm sm:max-w-md md:max-w-full lg:max-w-lg xl:max-w-xl rounded-xl shadow-2xl border-4 border-white/50 dark:border-gray-800 transition-all duration-500"
-          autoPlay
-          loop
-          muted
-          playsInline
-          />
-        </div>
+          {/*Video Tutorial for Beginners */}
+          <div className="w-full md:w-1/2 flex justify-center md:justify-start">
+            <video
+              src="/tutorial.mp4"
+              alt="MoodMirror Tutorial"
+              className="w-full max-w-sm sm:max-w-md md:max-w-full lg:max-w-lg xl:max-w-xl rounded-xl shadow-2xl border-4 border-white/50 dark:border-gray-800 transition-all duration-500"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
           {/*Text Content */}
           <div className="w-full md:w-1/2 text-center md:text-left">
             <h2 className="text-4xl md:text-5xl font-extrabold text-purple-700 dark:text-purple-300 mb-5 leading-tight">
@@ -319,29 +326,29 @@ function Home({ user }) {
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <Link
-              to="/moodmirror"
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-all"
+                to="/moodmirror"
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-all"
               >
                 Try MoodMirror Now
               </Link>
               <Link
-              to="/careercrack"
-              className="px-6 py-3 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-semibold rounded-lg shadow-md transition-all"
+                to="/careercrack"
+                className="px-6 py-3 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-semibold rounded-lg shadow-md transition-all"
               >
                 Explore CareerCrack
               </Link>
             </div>
           </div>
         </div>
-        
+
       </section>
       <section ref={countersRef} className="py-20 bg-white text-center dark:bg-[#0a0a14]">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12">
-            Our Impact So Far 🚀
+          Our Impact So Far 🚀
         </h2>
         {!isAnimating && (
           <div className="mb-6">
-            <button 
+            <button
               onClick={startCounterAnimation}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
@@ -357,7 +364,7 @@ function Home({ user }) {
             {/* 🎯 Animation triggered! Counters are counting up... */}
           </div>
         )}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {counters.map((item, i) => (
             <motion.div
               key={i}
@@ -367,10 +374,10 @@ function Home({ user }) {
               viewport={{ once: true }}
               className="p-6 rounded-xl bg-white dark:bg-gray-800 transition transform hover:scale-105 hover:shadow-lg cursor-pointer"
               title={item.label === "Students Helped"
-              ? "Number of students who received guidance"
-              : item.label === "Scholarships Found"
-              ? "Scholarships we helped students find"
-              : "Sessions that improved students"}
+                ? "Number of students who received guidance"
+                : item.label === "Scholarships Found"
+                  ? "Scholarships we helped students find"
+                  : "Sessions that improved students"}
             >
               <p className="text-4xl font-bold text-purple-400">
                 {counts[i].toLocaleString()}+
@@ -418,7 +425,7 @@ function Home({ user }) {
         </div>
       </section>
 
-  <section className="relative z-10 bg-gray-100 dark:bg-[#12121c] py-20 px-6 lg:px-20 overflow-hidden">
+      <section className="relative z-10 bg-gray-100 dark:bg-[#12121c] py-20 px-6 lg:px-20 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/30 blur-[150px] rounded-full z-0" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/20 blur-[120px] rounded-full z-0" />
         <div className="relative z-10 max-w-4xl mx-auto text-center">
