@@ -59,6 +59,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Unified PDF Parsing Helper
+async function parsePdf(buffer) {
+  const Library = loadPdfParse();
+  if (!Library) throw new Error("PDF Parser library not available");
+
+  // Check if it's the Class-based v2+ version
+  if (Library.prototype && Library.prototype.load && Library.prototype.getText) {
+    try {
+      console.log("Using Class-based PDF Parser");
+      const parser = new Library();
+      await parser.load(buffer);
+      const text = await parser.getText();
+      return { text: text };
+    } catch (err) {
+      console.error("Class-based PDF parse failed:", err);
+      throw err;
+    }
+  }
+
+  // Fallback to standard v1.x function call
+  return Library(buffer);
+}
+
 // Configure multer for file uploads
 const upload = multer({
   dest: 'uploads/',
@@ -663,9 +686,7 @@ app.post("/parse-resume-from-file", upload.single('resume'), async (req, res) =>
     // Parse specific file types
     if (req.file.mimetype === 'application/pdf') {
       const dataBuffer = fs.readFileSync(req.file.path);
-      const pdfParser = loadPdfParse();
-      if (!pdfParser) throw new Error("PDF Parser not available");
-      const data = await pdfParser(dataBuffer);
+      const data = await parsePdf(dataBuffer);
       resumeText = data.text;
     } else {
       // Default to text read
@@ -726,9 +747,7 @@ app.post("/career-recommend-resume", upload.single('resume'), async (req, res) =
 
     // Read and parse PDF
     const dataBuffer = fs.readFileSync(req.file.path);
-    const pdfParser = loadPdfParse();
-    if (!pdfParser) throw new Error("PDF Parser not available");
-    const pdfData = await pdfParser(dataBuffer);
+    const pdfData = await parsePdf(dataBuffer);
     const resumeText = pdfData.text;
 
     // Clean up uploaded file
