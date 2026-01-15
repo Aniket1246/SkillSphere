@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Video, Mic, Monitor, Code, MessageSquare, Play, StopCircle, Volume2, AlertCircle, CheckCircle2, ArrowUpCircle, Sparkles, ChevronRight, Laptop } from "lucide-react";
+import { Video, Mic, Monitor, Code, MessageSquare, Play, StopCircle, Volume2, AlertCircle, CheckCircle2, ArrowUpCircle, Sparkles, ChevronRight, Laptop, Timer } from "lucide-react";
 import axios from "axios";
 import LoginModal from "../components/LoginModal";
 import { toast } from "react-toastify";
@@ -102,29 +102,56 @@ function InterviewPrep({ user }) {
       updateVolume();
 
       // Init Speech Recognition
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.onresult = (event) => {
-          let final = "";
+      if ('webkitSpeechRecognition' in window) {
+        const recognition = new window.webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
           for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) final += event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
           }
-          if (final) setTranscript(prev => prev + " " + final);
+          setTranscript(prev => prev + finalTranscript + interimTranscript);
         };
-        recognitionRef.current.start();
+
+        recognition.start();
+        recognitionRef.current = recognition;
         setIsListening(true);
+      } else {
+        toast.warn("Speech recognition not supported in this browser.");
       }
 
-    } catch (e) {
-      console.error(e);
-      toast.error("Error starting interview. Check camera permissions.");
+      // Speak first question
+      speakQuestion(mockQuestions[0]);
+
+    } catch (err) {
+      console.error("Error starting interview:", err);
+      toast.error("Could not access camera/microphone");
+      setSessionState("setup");
     } finally {
       setLoading(false);
     }
   };
+
+  const speakQuestion = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop previous
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+
 
   const shareScreen = async () => {
     try {
@@ -136,10 +163,44 @@ function InterviewPrep({ user }) {
     }
   };
 
+  const [timer, setTimer] = useState(120); // 2 minutes per question
+
+  useEffect(() => {
+    let interval;
+    if (sessionState === 'active' && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            // Optionally auto-advance or just warn
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [sessionState, timer]);
+
+  useEffect(() => {
+    // Auto-open code editor for coding interviews
+    if (sessionState === 'active' && interviewType === 'coding') {
+      setShowCodeEditor(true);
+    }
+  }, [sessionState, interviewType]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   const nextQuestion = () => {
     if (questionIndex < questions.length - 1) {
-      setQuestionIndex(prev => prev + 1);
-      setTranscript(""); // Clear transcript for next Q? Or keep it? Keeping is safer for context.
+      const nextIdx = questionIndex + 1;
+      setQuestionIndex(nextIdx);
+      setTimer(120); // Reset timer
+      setTranscript("");
+      speakQuestion(questions[nextIdx]);
     } else {
       finishInterview();
     }
@@ -152,7 +213,6 @@ function InterviewPrep({ user }) {
     // Generate Feedback
     try {
       // Simulated feedback call
-      // const res = await axios.post(...)
       setTimeout(() => {
         setFeedback({
           score: 8.5,
@@ -194,8 +254,8 @@ function InterviewPrep({ user }) {
                   key={type}
                   onClick={() => setInterviewType(type)}
                   className={`p-4 rounded-xl border-2 transition-all font-semibold capitalize ${interviewType === type
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
                     }`}
                 >
                   {type} Interview
@@ -225,6 +285,20 @@ function InterviewPrep({ user }) {
           <div className="grid lg:grid-cols-3 gap-6 h-[80vh]">
             {/* Left Column: Video & Tools */}
             <div className="lg:col-span-2 flex flex-col gap-4">
+
+              {/* Timer & Status */}
+              <div className="flex items-center justify-between">
+                <div className={`px-4 py-1 rounded-full text-sm font-bold flex items-center gap-2 transition-colors ${timer < 30 ? "bg-red-500 text-white animate-pulse" : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  }`}>
+                  <Timer size={16} />
+                  {timer === 0 ? "Time's Up!" : formatTime(timer)}
+                </div>
+                {timer < 30 && timer > 0 && (
+                  <span className="text-sm font-bold text-red-500 animate-bounce">
+                    Hurry up!
+                  </span>
+                )}
+              </div>
 
               {/* Video Feed */}
               <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl flex-1 min-h-[400px]">

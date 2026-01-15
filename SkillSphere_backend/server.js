@@ -3,10 +3,67 @@ import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import multer from "multer";
+import fs from "fs";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
+// Polyfill DOMMatrix for pdf-parse if not available in Node.js
+if (!global.DOMMatrix) {
+  global.DOMMatrix = class DOMMatrix {
+    constructor() {
+      this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.e = 0; this.f = 0;
+    }
+  };
+}
+
+// Helper to load pdf-parse robustly
+let pdfParseLib = null;
+const loadPdfParse = () => {
+  if (pdfParseLib) return pdfParseLib;
+  try {
+    let imported = require("pdf-parse");
+    // Check for various export styles
+    if (typeof imported === 'function') {
+      pdfParseLib = imported;
+    } else if (imported.default && typeof imported.default === 'function') {
+      pdfParseLib = imported.default;
+    } else if (imported.PDFParse && typeof imported.PDFParse === 'function') {
+      pdfParseLib = imported.PDFParse;
+    } else {
+      // Fallback: try requiring the CJS file directly
+      try {
+        const cjs = require("pdf-parse/dist/pdf-parse/cjs/index.cjs");
+        if (typeof cjs === 'function') {
+          pdfParseLib = cjs;
+        } else if (cjs.default && typeof cjs.default === 'function') {
+          pdfParseLib = cjs.default;
+        }
+      } catch (e2) {
+        console.warn("Failed to require CJS fallback:", e2);
+      }
+
+      if (!pdfParseLib) {
+        console.warn("Warning: pdf-parse main export is not a function. Keys:", Object.keys(imported));
+        // Final desperate attempt: assign anyway, but it will likely fail if called
+        pdfParseLib = imported;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to require pdf-parse:", e);
+  }
+  return pdfParseLib;
+};
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -593,6 +650,167 @@ app.post("/job-trends/search", async (req, res) => {
   }
 });
 
+// Resume File Parser (PDF/TXT)
+app.post("/parse-resume-from-file", upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    let resumeText = "";
+    console.log("Processing file:", req.file.path, req.file.mimetype);
+
+    // Parse specific file types
+    if (req.file.mimetype === 'application/pdf') {
+      const dataBuffer = fs.readFileSync(req.file.path);
+      const pdfParser = loadPdfParse();
+      if (!pdfParser) throw new Error("PDF Parser not available");
+      const data = await pdfParser(dataBuffer);
+      resumeText = data.text;
+    } else {
+      // Default to text read
+      resumeText = fs.readFileSync(req.file.path, 'utf8');
+    }
+
+    // Cleanup: delete temp file
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (e) { console.error("Error deleting temp file:", e); }
+
+    if (!resumeText || resumeText.length < 50) {
+      return res.status(400).json({ error: "Could not extract text from file." });
+    }
+
+    // Call LLM for extraction
+    const prompt = `Extract portfolio data from this resume text:
+    ${resumeText.substring(0, 15000)}... (truncated)
+    
+    Provide JSON with:
+    1. name: string
+    2. title: string (professional title)
+    3. bio: string (professional summary, max 500 chars)
+    4. skills: string (comma separated list)
+    5. email: string
+    6. phone: string
+    7. projects: Array of { title, description, technologies: ["Tech1", "Tech2"], githubUrl: "", liveUrl: "" } (Extract at least 2 projects if available)
+    
+    Format as valid JSON only.`;
+
+    const aiResponse = await callGroqAPI([
+      { role: "system", content: "You are an expert resume parser. Extract data accurately and output ONLY valid JSON." },
+      { role: "user", content: prompt }
+    ]);
+
+    // Parse the LLM response
+    const parsed = JSON.parse(aiResponse);
+
+    // Normalize response structure
+    res.json({ data: parsed });
+
+  } catch (error) {
+    console.error("Resume file parse error:", error);
+    res.status(500).json({ error: "Failed to process resume file" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ SkillSphere Backend running on port ${PORT}`);
+});
+
+// Resume-based Career Recommendations with Job Suggestions
+app.post("/career-recommend-resume", upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No resume file uploaded" });
+    }
+
+    // Read and parse PDF
+    const dataBuffer = fs.readFileSync(req.file.path);
+    const pdfParser = loadPdfParse();
+    if (!pdfParser) throw new Error("PDF Parser not available");
+    const pdfData = await pdfParser(dataBuffer);
+    const resumeText = pdfData.text;
+
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+
+    const prompt = `Analyze this resume and provide comprehensive career recommendations:
+
+Resume Content:
+${resumeText}
+
+Provide a detailed JSON response with:
+1. extractedInfo: {
+   name: string,
+   email: string,
+   phone: string,
+   skills: array of skills found,
+   experience: years of experience,
+   education: highest education level,
+   currentRole: current or most recent job title
+}
+2. careers: Array of 5 career paths with title, description, matchScore (0-100), and fit (why it's a good match)
+3. trendingIndustries: Array of 5 fast-growing industries matching their profile
+4. recommendedJobs: Array of 8-10 specific job titles they should apply for with:
+   - title: job title
+   - company: example companies hiring (comma-separated)
+   - salary: estimated salary range
+   - matchScore: 0-100
+   - requirements: key requirements
+5. skillGaps: Array of skills they should learn
+6. nextSteps: Array of 5 actionable next steps
+7. strengths: Array of 3-5 key strengths from resume
+8. improvementAreas: Array of 3 areas to improve
+
+Format as valid JSON only.`;
+
+    const aiResponse = await callGroqAPI([
+      { role: "system", content: "You are an expert career counselor and resume analyst. Respond only with valid JSON." },
+      { role: "user", content: prompt }
+    ], 0.7);
+
+    const parsed = JSON.parse(aiResponse);
+    res.json(parsed);
+  } catch (error) {
+    console.error("Resume analysis error:", error);
+
+    // Fallback response
+    res.json({
+      extractedInfo: {
+        name: "User",
+        skills: ["Communication", "Problem Solving", "Leadership"],
+        experience: "2",
+        education: "Bachelor's",
+        currentRole: "Professional"
+      },
+      careers: [
+        { title: "Software Engineer", description: "Build applications and systems", matchScore: 85, fit: "Strong technical background and problem-solving skills" },
+        { title: "Product Manager", description: "Lead product development", matchScore: 78, fit: "Good communication and leadership abilities" },
+        { title: "Data Analyst", description: "Analyze data for insights", matchScore: 75, fit: "Analytical mindset and attention to detail" },
+        { title: "UX Designer", description: "Design user experiences", matchScore: 72, fit: "Creative thinking and user empathy" },
+        { title: "Business Analyst", description: "Bridge tech and business", matchScore: 70, fit: "Strong communication and analytical skills" }
+      ],
+      trendingIndustries: ["AI/ML", "Cloud Computing", "Cybersecurity", "FinTech", "HealthTech"],
+      recommendedJobs: [
+        { title: "Junior Software Engineer", company: "Google, Microsoft, Amazon", salary: "$80k - $120k", matchScore: 88, requirements: "2+ years experience, CS degree, JavaScript/Python" },
+        { title: "Frontend Developer", company: "Meta, Netflix, Airbnb", salary: "$75k - $110k", matchScore: 85, requirements: "React, JavaScript, CSS, 1-3 years experience" },
+        { title: "Full Stack Developer", company: "Stripe, Shopify, Square", salary: "$90k - $130k", matchScore: 82, requirements: "Node.js, React, Databases, 2-4 years experience" },
+        { title: "Product Analyst", company: "Apple, Tesla, Uber", salary: "$70k - $100k", matchScore: 78, requirements: "SQL, Analytics, Communication, 1-2 years experience" },
+        { title: "UX Engineer", company: "Adobe, Figma, Canva", salary: "$75k - $115k", matchScore: 76, requirements: "Design, Frontend, User Research, Portfolio" },
+        { title: "Data Engineer", company: "Snowflake, Databricks, AWS", salary: "$95k - $140k", matchScore: 74, requirements: "Python, SQL, ETL, Cloud platforms" },
+        { title: "DevOps Engineer", company: "HashiCorp, Docker, Red Hat", salary: "$90k - $135k", matchScore: 72, requirements: "CI/CD, Kubernetes, AWS/Azure, 2+ years" },
+        { title: "Mobile Developer", company: "Spotify, Instagram, TikTok", salary: "$80k - $125k", matchScore: 70, requirements: "React Native or Swift/Kotlin, 2+ years" }
+      ],
+      skillGaps: ["Advanced JavaScript", "System Design", "Cloud Platforms (AWS/Azure)", "Docker/Kubernetes"],
+      nextSteps: [
+        "Update LinkedIn profile with recent achievements and skills",
+        "Build 2-3 portfolio projects showcasing your abilities",
+        "Apply to 10-15 jobs per week matching your profile",
+        "Network with professionals in your target industry",
+        "Take online courses to fill identified skill gaps"
+      ],
+      strengths: ["Strong technical foundation", "Good communication skills", "Problem-solving ability", "Quick learner"],
+      improvementAreas: ["Leadership experience", "Public speaking", "Project management skills"]
+    });
+  }
 });

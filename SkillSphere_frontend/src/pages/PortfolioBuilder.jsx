@@ -15,6 +15,7 @@ function PortfolioBuilder({ user }) {
   const [showImportModal, setShowImportModal] = useState(false);
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
 
   const [portfolioData, setPortfolioData] = useState({
     name: "",
@@ -66,29 +67,57 @@ function PortfolioBuilder({ user }) {
     }
   };
 
+  const loadPdfJs = () => new Promise((resolve, reject) => {
+    if (window.pdfjsLib) return resolve(window.pdfjsLib);
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.js';
+    s.onload = () => resolve(window.pdfjsLib);
+    s.onerror = reject;
+    document.body.appendChild(s);
+  });
+
+  const extractPdfText = async (arrayBuffer) => {
+    const pdfjsLib = await loadPdfJs();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.worker.min.js';
+    const typedArray = new Uint8Array(arrayBuffer);
+    const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    return fullText;
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setResumeText(event.target.result);
-      toast.success("Resume text loaded from file.");
-    };
-    reader.readAsText(file);
+    setResumeFile(file);
+    setResumeText(""); // clear text if file is uploaded
+    toast.success(`File ready: ${file.name}`);
   };
 
   const handleImportFromResume = async () => {
-    if (!resumeText.trim()) {
-      toast.error("Please paste your resume text.");
+    if (!resumeFile && !resumeText.trim()) {
+      toast.error("Please upload a file or paste text.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post("http://127.0.0.1:5000/parse-resume-data", {
-        resumeText
-      });
+      let response;
+      if (resumeFile) {
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        response = await axios.post("http://127.0.0.1:5000/parse-resume-from-file", formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        response = await axios.post("http://127.0.0.1:5000/parse-resume-data", {
+          resumeText
+        });
+      }
 
       const { data } = response.data;
 
@@ -318,7 +347,7 @@ function PortfolioBuilder({ user }) {
                   <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition text-sm font-medium">
                     <FileText size={16} />
                     Upload Resume File
-                    <input type="file" accept=".txt,.md" className="hidden" onChange={handleFileUpload} />
+                    <input type="file" accept=".txt,.md,.pdf" className="hidden" onChange={handleFileUpload} />
                   </label>
                 </div>
                 <textarea
