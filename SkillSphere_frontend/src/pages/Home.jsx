@@ -18,6 +18,7 @@ import {
   FileText,
   BookOpen,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 
 function Home({ user }) {
@@ -32,10 +33,64 @@ function Home({ user }) {
 
   const features = [
     {
+      title: "Career Path Recommender",
+      desc: "AI-powered career suggestions based on your skills and interests.",
+      icon: <GraduationCap className="w-6 h-6 text-purple-400" />,
+      link: "/career-recommender",
+    },
+    {
       title: "Career Mentor",
       desc: "Get career advice powered by your strengths and passions.",
       icon: <GraduationCap className="w-6 h-6 text-purple-400" />,
       link: "/careercrack",
+    },
+    {
+      title: "AI Resume Builder",
+      desc: "Generate ATS-optimized resumes with AI feedback & skill gap analysis.",
+      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
+      link: "/resume-builder"
+    },
+    {
+      title: "Resume Analyzer",
+      desc: "Upload your resume for an ATS score and improvement tips.",
+      icon: <FileText className="w-6 h-6 text-purple-400" />,
+      link: "/resume-analyzer"
+    },
+    {
+      title: "Learning Guide",
+      desc: "Personalized course recommendations to fill your skill gaps.",
+      icon: <BookOpen className="w-6 h-6 text-purple-400" />,
+      link: "/learning-guide"
+    },
+    {
+      title: "Interview Prep",
+      desc: "Practice with AI-powered mock interviews and get feedback.",
+      icon: <Target className="w-6 h-6 text-purple-400" />,
+      link: "/interview-prep",
+    },
+    {
+      title: "Career Persona",
+      desc: "Generate a professional summary of your career profile.",
+      icon: <Brain className="w-6 h-6 text-purple-400" />,
+      link: "/career-persona",
+    },
+    {
+      title: "Portfolio Builder",
+      desc: "Automatically compile your projects into a shareable portfolio.",
+      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
+      link: "/portfolio"
+    },
+    {
+      title: "Peer Learning",
+      desc: "Join mock interviews and study groups with peers.",
+      icon: <Target className="w-6 h-6 text-purple-400" />,
+      link: "/peer-learning"
+    },
+    {
+      title: "Job Trend Tracker",
+      desc: "Real-time insights on role demand and salary trends.",
+      icon: <TrendingUp className="w-6 h-6 text-purple-400" />,
+      link: "/job-trends"
     },
     {
       title: "Mood Mirror",
@@ -60,24 +115,6 @@ function Home({ user }) {
       desc: "Transcribe your ideas with whisper-accurate AI.",
       icon: <Mic className="w-6 h-6 text-purple-400" />,
       link: "/voicefeedback",
-    },
-    {
-      title: "PDF Exports",
-      desc: "Download your chats and notes instantly.",
-      icon: <FileText className="w-6 h-6 text-purple-400" />,
-      link: "/careercrack"
-    },
-    {
-      title: "Resume Analyzer",
-      desc: "Upload your resume for an ATS score and improvement tips.",
-      icon: <FileText className="w-6 h-6 text-purple-400" />,
-      link: "/resume-analyzer"
-    },
-    {
-      title: "AI Resume Builder",
-      desc: "Generate ATS-optimized resumes with AI feedback & skill gap analysis.",
-      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
-      link: "/resume-builder"
     },
     {
       title: "Resource Vault",

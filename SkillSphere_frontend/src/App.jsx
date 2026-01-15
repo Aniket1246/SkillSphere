@@ -17,6 +17,13 @@ import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import ResumeBuilder from './pages/ResumeBuilder';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import LoginModal from './components/LoginModal';
+import CareerPathRecommender from './pages/CareerPathRecommender';
+import LearningGuide from './pages/LearningGuide';
+import InterviewPrep from './pages/InterviewPrep';
+import CareerPersona from './pages/CareerPersona';
+import PortfolioBuilder from './pages/PortfolioBuilder';
+import PeerLearning from './pages/PeerLearning';
+import JobTrendTracker from './pages/JobTrendTracker';
 
 const ResourceVault = React.lazy(() => import('./pages/ResourceVault'));
 
@@ -84,6 +91,13 @@ function App() {
             <Route path="/voicefeedback" element={<VoiceFeedback user={user} />} />
             <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
             <Route path="/resume-builder" element={<ResumeBuilder />} />
+            <Route path="/career-recommender" element={<CareerPathRecommender user={user} />} />
+            <Route path="/learning-guide" element={<LearningGuide user={user} />} />
+            <Route path="/interview-prep" element={<InterviewPrep user={user} />} />
+            <Route path="/career-persona" element={<CareerPersona user={user} />} />
+            <Route path="/portfolio" element={<PortfolioBuilder user={user} />} />
+            <Route path="/peer-learning" element={<PeerLearning user={user} />} />
+            <Route path="/job-trends" element={<JobTrendTracker />} />
             <Route
               path="/resourcevault"
               element={

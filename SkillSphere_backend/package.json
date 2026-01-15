@@ -5,8 +5,9 @@
   "main": "groq-proxy.js",
   "type": "module",
   "scripts": {
-    "start": "node groq-proxy.js",
-    "dev": "nodemon groq-proxy.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "groq-proxy": "node groq-proxy.js"
   },
   "keywords": [
     "groq",
