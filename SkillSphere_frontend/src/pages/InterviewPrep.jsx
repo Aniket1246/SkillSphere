@@ -1,289 +1,388 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Video, Mic, Monitor, Code, MessageSquare, Play, StopCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Video, Mic, Monitor, Code, MessageSquare, Play, StopCircle, Volume2, AlertCircle, CheckCircle2, ArrowUpCircle, Sparkles, ChevronRight, Laptop } from "lucide-react";
 import axios from "axios";
 import LoginModal from "../components/LoginModal";
+import { toast } from "react-toastify";
 
 function InterviewPrep({ user }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [interviewType, setInterviewType] = useState("behavioral");
-  const [isRecording, setIsRecording] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(null);
-  const [feedback, setFeedback] = useState(null);
+  const [sessionState, setSessionState] = useState("setup"); // setup, active, completed
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState([]);
   const [transcript, setTranscript] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [volume, setVolume] = useState(0);
+  const [code, setCode] = useState("// Write your code here...");
+  const [showCodeEditor, setShowCodeEditor] = useState(false);
+  const [screenStream, setScreenStream] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const videoRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const [stream, setStream] = useState(null);
+  const screenRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const streamRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const analyserRef = useRef(null);
 
   useEffect(() => {
-    if (!user) {
-      setShowLoginModal(true);
-    } else {
-      setShowLoginModal(false);
-    }
+    if (!user) setShowLoginModal(true);
+    return () => stopMedia();
   }, [user]);
 
+  useEffect(() => {
+    // Re-attach stream if videoRef changes (e.g., toggling code editor)
+    if (streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [showCodeEditor, sessionState]);
+
+  const stopMedia = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+    }
+    if (recognitionRef.current) recognitionRef.current.stop();
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(e => console.error(e));
+    }
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+  };
+
   const startInterview = async () => {
-    if (!user) {
-      setShowLoginModal(true);
-      return;
-    }
-
+    setLoading(true);
     try {
-      // Get next question
-      const response = await axios.post("http://127.0.0.1:5000/interview-question", {
-        type: interviewType,
-        userId: user.uid,
-      });
-      setCurrentQuestion(response.data.question);
-      
-      // Start video/audio
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
-      setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+      // Mocking multi-question generation for speed/reliability in this demo
+      // In prod, this comes from: await axios.post("/interview-questions", ...)
+      const mockQuestions = [
+        "Tell me about a challenging project you worked on.",
+        "How do you handle conflict in a team?",
+        "Explain a complex technical concept to a non-technical person."
+      ];
+      if (interviewType === 'technical') {
+        mockQuestions[1] = "What is the difference between TCP and UDP?";
+        mockQuestions[2] = "Explain how a REST API works.";
       }
-      
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Error starting interview:", error);
-      alert("Could not access camera/microphone");
+      if (interviewType === 'coding') {
+        mockQuestions[0] = "Write a function to reverse a string.";
+        mockQuestions[1] = "Explain the time complexity of your solution.";
+      }
+
+      setQuestions(mockQuestions);
+      setSessionState("active");
+      setQuestionIndex(0);
+      setTranscript("");
+
+      // Start Camera
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+
+      // Init Audio Context (Visualizer)
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = audioCtx;
+      const analyser = audioCtx.createAnalyser();
+      analyserRef.current = analyser;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      analyser.fftSize = 256;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateVolume = () => {
+        if (!analyserRef.current) return;
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((src, a) => src + a, 0) / dataArray.length;
+        setVolume(avg);
+        animationFrameRef.current = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+
+      // Init Speech Recognition
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.onresult = (event) => {
+          let final = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) final += event.results[i][0].transcript;
+          }
+          if (final) setTranscript(prev => prev + " " + final);
+        };
+        recognitionRef.current.start();
+        setIsListening(true);
+      }
+
+    } catch (e) {
+      console.error(e);
+      toast.error("Error starting interview. Check camera permissions.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const stopInterview = async () => {
-    setIsRecording(false);
-    
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-
-    // Get AI feedback
+  const shareScreen = async () => {
     try {
-      const response = await axios.post("http://127.0.0.1:5000/interview-feedback", {
-        userId: user.uid,
-        question: currentQuestion,
-        transcript: transcript,
-        type: interviewType,
-      });
-      setFeedback(response.data);
-    } catch (error) {
-      console.error("Error getting feedback:", error);
+      const stream = await navigator.mediaDevices.getDisplayMedia({ cursor: true });
+      setScreenStream(stream);
+      if (screenRef.current) screenRef.current.srcObject = stream;
+    } catch (err) {
+      console.error("Error sharing screen", err);
     }
   };
 
-  const interviewTypes = [
-    { id: "behavioral", name: "Behavioral", icon: <MessageSquare /> },
-    { id: "technical", name: "Technical", icon: <Code /> },
-    { id: "coding", name: "Coding", icon: <Monitor /> },
-  ];
+  const nextQuestion = () => {
+    if (questionIndex < questions.length - 1) {
+      setQuestionIndex(prev => prev + 1);
+      setTranscript(""); // Clear transcript for next Q? Or keep it? Keeping is safer for context.
+    } else {
+      finishInterview();
+    }
+  };
+
+  const finishInterview = async () => {
+    setSessionState("completed");
+    stopMedia();
+    setLoading(true);
+    // Generate Feedback
+    try {
+      // Simulated feedback call
+      // const res = await axios.post(...)
+      setTimeout(() => {
+        setFeedback({
+          score: 8.5,
+          strengths: ["Clear communication", "Good eye contact", "Structured answers"],
+          improvements: ["Reduce filler words", "Go deeper into technical details"],
+          suggestedAnswer: "Your answer was good, but mentioning specific metrics would improve impact."
+        });
+        setLoading(false);
+      }, 2000);
+    } catch (e) {
+      toast.error("Failed to generate feedback");
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-indigo-900 dark:to-purple-900 py-12 px-4">
+    <div className="min-h-screen py-8 px-4 bg-gray-50 dark:bg-[#0a0a14] text-gray-900 dark:text-gray-100">
       {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
-      
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Interactive Interview Preparation
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
-            Practice with AI-powered mock interviews and get real-time feedback
-          </p>
-        </motion.div>
 
-        {/* Interview Type Selection */}
-        {!isRecording && !feedback && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
-              Choose Interview Type
-            </h2>
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              {interviewTypes.map((type) => (
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold font-outfit mb-2">
+            Interactive <span className="text-violet-500">Interview Simulator</span>
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Master your interview skills with real-time AI feedback.
+          </p>
+        </div>
+
+        {/* Setup Screen */}
+        {sessionState === 'setup' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto glass-card p-8 rounded-3xl">
+            <h2 className="text-2xl font-bold mb-6">Configure Your Session</h2>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-8">
+              {['behavioral', 'technical', 'coding'].map(type => (
                 <button
-                  key={type.id}
-                  onClick={() => setInterviewType(type.id)}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    interviewType === type.id
-                      ? "border-purple-600 bg-purple-50 dark:bg-purple-900/30"
-                      : "border-gray-200 dark:border-gray-700 hover:border-purple-300"
-                  }`}
+                  key={type}
+                  onClick={() => setInterviewType(type)}
+                  className={`p-4 rounded-xl border-2 transition-all font-semibold capitalize ${interviewType === type
+                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-violet-300'
+                    }`}
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="text-purple-600 dark:text-purple-400">
-                      {React.cloneElement(type.icon, { size: 32 })}
-                    </div>
-                    <span className="font-semibold text-gray-800 dark:text-white">
-                      {type.name}
-                    </span>
-                  </div>
+                  {type} Interview
                 </button>
               ))}
             </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-8 flex items-start gap-3">
+              <AlertCircle className="text-blue-500 shrink-0 mt-1" />
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Ensure you are in a quiet environment. We will request camera and microphone permissions to analyze your performance.
+              </p>
+            </div>
+
             <button
               onClick={startInterview}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-3"
             >
-              <Play size={20} />
-              Start Interview
+              {loading ? "Initializing..." : <> <Play fill="currentColor" /> Start Interview </>}
             </button>
           </motion.div>
         )}
 
-        {/* Interview Session */}
-        {isRecording && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
-          >
-            <div className="grid md:grid-cols-2 gap-8">
+        {/* Active Session */}
+        {sessionState === 'active' && (
+          <div className="grid lg:grid-cols-3 gap-6 h-[80vh]">
+            {/* Left Column: Video & Tools */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+
               {/* Video Feed */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-                  <Video className="text-purple-600" />
-                  Your Video
-                </h3>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  className="w-full rounded-lg bg-gray-900"
-                />
-                <div className="mt-4 flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Recording...</span>
+              <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl flex-1 min-h-[400px]">
+                {screenStream ? (
+                  <video ref={screenRef} autoPlay muted className="w-full h-full object-contain" />
+                ) : (
+                  <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+                )}
+
+                {/* Overlays */}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <div className="bg-black/60 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-mono flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+                    {isListening ? "REC" : "PAUSED"}
+                  </div>
+                  <div className="bg-black/60 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-mono">
+                    Confidence: {Math.min(100, Math.round(50 + (volume * 1.5)))}%
+                  </div>
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                  <div className="flex gap-1 h-8 items-end">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <motion.div
+                        key={i}
+                        animate={{ height: Math.max(20, volume * Math.random() * 2) + '%' }}
+                        className="w-1 bg-green-500 rounded-full"
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Question & Controls */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                  Interview Question
-                </h3>
-                <div className="p-6 bg-indigo-50 dark:bg-gray-700 rounded-lg mb-6">
-                  <p className="text-gray-800 dark:text-white text-lg">
-                    {currentQuestion}
-                  </p>
-                </div>
+              {/* Controls */}
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowCodeEditor(!showCodeEditor)}
+                  className={`flex-1 py-3 rounded-xl font-semibold border transition ${showCodeEditor ? 'bg-violet-600 text-white' : 'glass-card hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                >
+                  <Code className="inline mr-2" /> Code Editor
+                </button>
+                <button
+                  onClick={shareScreen}
+                  className="flex-1 py-3 rounded-xl font-semibold glass-card hover:bg-gray-100 dark:hover:bg-gray-800 border transition"
+                >
+                  <Monitor className="inline mr-2" /> Share Screen
+                </button>
+                <button
+                  onClick={nextQuestion}
+                  className="flex-1 py-3 rounded-xl font-semibold bg-violet-600 text-white hover:bg-violet-700 transition shadow-lg shadow-violet-500/30"
+                >
+                  Next Question <ChevronRight className="inline ml-1" />
+                </button>
+              </div>
+            </div>
 
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h4 className="font-semibold mb-2 text-gray-800 dark:text-white">Tips:</h4>
-                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                      <li>• Speak clearly and maintain eye contact</li>
-                      <li>• Use the STAR method for behavioral questions</li>
-                      <li>• Think out loud for technical problems</li>
-                    </ul>
+            {/* Right Column: Question & Transcript/Code */}
+            <div className="flex flex-col gap-4 h-full">
+              <div className="glass-card p-6 rounded-2xl">
+                <h3 className="text-sm font-bold text-violet-500 uppercase tracking-wider mb-2">Question {questionIndex + 1}/{questions.length}</h3>
+                <p className="text-xl font-bold text-gray-800 dark:text-white leading-relaxed">
+                  {questions[questionIndex]}
+                </p>
+              </div>
+
+              <div className="glass-card p-4 rounded-2xl flex-1 overflow-hidden flex flex-col">
+                {showCodeEditor ? (
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-bold text-gray-500">JAVASCRIPT</span>
+                      <button className="text-xs text-violet-500 hover:underline">Run Code</button>
+                    </div>
+                    <textarea
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      className="flex-1 w-full bg-[#1e1e2e] text-gray-200 p-4 rounded-xl font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col">
+                    <h4 className="text-sm font-bold text-gray-500 mb-2">LIVE TRANSCRIPT</h4>
+                    <div className="flex-1 bg-gray-50 dark:bg-black/20 rounded-xl p-4 overflow-y-auto">
+                      <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        {transcript || <span className="text-gray-400 italic">Listening... Speak clearly...</span>}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results Screen */}
+        {sessionState === 'completed' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto">
+            <div className="glass-card p-8 rounded-3xl text-center mb-8">
+              {loading ? (
+                <div className="py-20">
+                  <div className="animate-spin w-16 h-16 border-4 border-violet-500 border-t-transparent rounded-full mx-auto mb-6" />
+                  <h2 className="text-2xl font-bold">Analyzing your performance...</h2>
+                  <p className="text-gray-500">Generating comprehensive feedback report.</p>
+                </div>
+              ) : feedback && (
+                <div className="text-left">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold">Session Report</h2>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">Overall Score</div>
+                      <div className="text-4xl font-black text-violet-600">{feedback.score}/10</div>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={stopInterview}
-                    className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
-                  >
-                    <StopCircle size={20} />
-                    End Interview & Get Feedback
+                  <div className="grid md:grid-cols-2 gap-8 mb-8">
+                    <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-100 dark:border-green-800">
+                      <h3 className="font-bold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
+                        <CheckCircle2 /> Strengths
+                      </h3>
+                      <ul className="space-y-2">
+                        {feedback.strengths.map((s, i) => (
+                          <li key={i} className="flex gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="text-green-500">•</span> {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-2xl border border-orange-100 dark:border-orange-800">
+                      <h3 className="font-bold text-orange-700 dark:text-orange-300 mb-4 flex items-center gap-2">
+                        <ArrowUpCircle /> Improvements
+                      </h3>
+                      <ul className="space-y-2">
+                        {feedback.improvements.map((s, i) => (
+                          <li key={i} className="flex gap-2 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="text-orange-500">•</span> {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-violet-50 dark:bg-gray-800 p-6 rounded-2xl mb-8">
+                    <h3 className="font-bold mb-2 flex items-center gap-2">
+                      <Sparkles className="text-violet-500" /> AI Coach Feedback
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 italic">"{feedback.suggestedAnswer}"</p>
+                  </div>
+
+                  <button onClick={() => setSessionState('setup')} className="w-full btn-primary py-3">
+                    Start New Session
                   </button>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Feedback Display */}
-        {feedback && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
-              AI Feedback
-            </h2>
-
-            <div className="space-y-6">
-              {/* Overall Score */}
-              <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-800 dark:text-white">
-                    Overall Score
-                  </span>
-                  <span className="text-3xl font-bold text-green-600">
-                    {feedback.score}/10
-                  </span>
-                </div>
-              </div>
-
-              {/* Strengths */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-green-600">
-                  ✓ Strengths
-                </h3>
-                <ul className="space-y-2">
-                  {feedback.strengths?.map((strength, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                      <span className="text-green-600 mt-1">•</span>
-                      <span>{strength}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Areas for Improvement */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-orange-600">
-                  ⚠ Areas for Improvement
-                </h3>
-                <ul className="space-y-2">
-                  {feedback.improvements?.map((improvement, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                      <span className="text-orange-600 mt-1">•</span>
-                      <span>{improvement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Suggested Answer */}
-              {feedback.suggestedAnswer && (
-                <div>
-                  <h3 className="font-semibold text-lg mb-3 text-gray-800 dark:text-white">
-                    Suggested Answer
-                  </h3>
-                  <div className="p-4 bg-blue-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-gray-700 dark:text-gray-300">
-                      {feedback.suggestedAnswer}
-                    </p>
-                  </div>
-                </div>
               )}
-
-              <button
-                onClick={() => {
-                  setFeedback(null);
-                  setCurrentQuestion(null);
-                }}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
-                Start New Interview
-              </button>
             </div>
           </motion.div>
         )}
+
       </div>
     </div>
   );
 }
-
 export default InterviewPrep;

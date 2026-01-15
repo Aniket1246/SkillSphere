@@ -46,7 +46,7 @@ function SkillTagInput({ skills, setSkills, placeholder = "Add a skill..." }) {
   };
 
   const suggestedSkills = [
-    'React', 'Python', 'JavaScript', 'Node.js', 'SQL', 'AWS', 
+    'React', 'Python', 'JavaScript', 'Node.js', 'SQL', 'AWS',
     'Machine Learning', 'Data Analysis', 'Communication', 'Leadership'
   ];
 
@@ -101,13 +101,13 @@ function ScoreRing({ score, label, size = 120, strokeWidth = 8 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (score / 100) * circumference;
-  
+
   const getScoreColor = (s) => {
     if (s >= 80) return { stroke: '#22c55e', bg: 'from-green-500/20 to-emerald-500/20', text: 'text-green-500' };
     if (s >= 60) return { stroke: '#eab308', bg: 'from-yellow-500/20 to-orange-500/20', text: 'text-yellow-500' };
     return { stroke: '#ef4444', bg: 'from-red-500/20 to-orange-500/20', text: 'text-red-500' };
   };
-  
+
   const colors = getScoreColor(score);
 
   return (
@@ -172,7 +172,7 @@ export default function ResumeBuilder() {
   const [generatedResume, setGeneratedResume] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [activeSection, setActiveSection] = useState('form');
-  
+
   const resumeRef = useRef(null);
   const analysisRef = useRef(null);
 
@@ -213,7 +213,7 @@ export default function ResumeBuilder() {
   // Generate Resume with AI
   const generateResume = async () => {
     if (!validateForm()) return;
-    
+
     setLoading(true);
     setGeneratedResume(null);
     setAnalysis(null);
@@ -310,14 +310,14 @@ Requirements:
       );
 
       const content = response.data.choices[0].message.content;
-      
+
       // Parse the JSON response
       let parsed;
       try {
         // Extract JSON from potential markdown code blocks
-        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
-                         content.match(/```\s*([\s\S]*?)\s*```/) ||
-                         [null, content];
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
+          content.match(/```\s*([\s\S]*?)\s*```/) ||
+          [null, content];
         parsed = JSON.parse(jsonMatch[1] || content);
       } catch (parseErr) {
         console.error('Failed to parse AI response:', parseErr);
@@ -328,9 +328,9 @@ Requirements:
       setGeneratedResume(parsed.resume);
       setAnalysis(parsed.analysis);
       setActiveSection('resume');
-      
+
       toast.success('Resume generated successfully! ✨');
-      
+
       setTimeout(() => {
         resumeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -338,7 +338,7 @@ Requirements:
     } catch (err) {
       console.error('AI generation error:', err);
       toast.error('Failed to generate resume. Using demo data.');
-      
+
       // Use mock data as fallback
       const mock = generateMockData();
       setGeneratedResume(mock.resume);
@@ -412,7 +412,7 @@ Requirements:
   // Download Resume as PDF
   const downloadPDF = () => {
     if (!generatedResume) return;
-    
+
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 50;
@@ -559,7 +559,12 @@ Requirements:
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-8 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a14] text-gray-900 dark:text-gray-100 py-12 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-300 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] bg-violet-500/10 rounded-full blur-[80px]" />
+        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-fuchsia-500/10 rounded-full blur-[80px]" />
+      </div>
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <motion.div
@@ -586,13 +591,12 @@ Requirements:
               key={step.id}
               onClick={() => (step.id === 'form' || generatedResume) && setActiveSection(step.id)}
               disabled={step.id !== 'form' && !generatedResume}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                activeSection === step.id
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg scale-105'
-                  : step.id !== 'form' && !generatedResume
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${activeSection === step.id
+                ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg scale-105'
+                : step.id !== 'form' && !generatedResume
                   ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:scale-102 border border-gray-200 dark:border-gray-700'
-              }`}
+                }`}
             >
               <step.icon size={18} />
               <span className="hidden sm:inline font-medium">{step.label}</span>
@@ -612,7 +616,7 @@ Requirements:
               exit={{ opacity: 0, x: 50 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl p-6 md:p-8">
+              <div className="glass-card rounded-3xl p-6 md:p-8">
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50">
                     <User className="text-purple-600 dark:text-purple-400" size={24} />
@@ -633,7 +637,7 @@ Requirements:
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="John Doe"
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                      className="input-field"
                     />
                   </div>
 
@@ -650,7 +654,7 @@ Requirements:
                       onChange={handleChange}
                       list="roles"
                       placeholder="e.g., Software Engineer"
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                      className="input-field"
                     />
                     <datalist id="roles">
                       {rolesSuggestions.map(role => (
@@ -670,7 +674,7 @@ Requirements:
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="john@example.com"
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                      className="input-field"
                     />
                   </div>
 
@@ -685,7 +689,7 @@ Requirements:
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+1 (555) 000-0000"
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                      className="input-field"
                     />
                   </div>
 
@@ -701,7 +705,7 @@ Requirements:
                       onChange={handleChange}
                       placeholder="B.Tech in Computer Science, XYZ University (2020-2024)&#10;CGPA: 8.5/10"
                       rows={3}
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all resize-none"
+                      className="input-field resize-none"
                     />
                   </div>
 
@@ -730,7 +734,7 @@ Requirements:
                       onChange={handleChange}
                       placeholder="Software Developer Intern at ABC Corp (Jun 2023 - Aug 2023)&#10;• Built REST APIs using Node.js&#10;• Improved database query performance by 40%"
                       rows={4}
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all resize-none"
+                      className="input-field resize-none"
                     />
                   </div>
 
@@ -746,7 +750,7 @@ Requirements:
                       onChange={handleChange}
                       placeholder="E-commerce Platform - Built with React, Node.js, MongoDB&#10;• Implemented payment gateway integration&#10;• 1000+ active users"
                       rows={4}
-                      className="w-full p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none transition-all resize-none"
+                      className="input-field resize-none"
                     />
                   </div>
                 </div>
@@ -786,9 +790,9 @@ Requirements:
               exit={{ opacity: 0, x: 50 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden">
+              <div className="glass-card rounded-3xl overflow-hidden">
                 {/* Resume Header Bar */}
-                <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-fuchsia-500 px-6 py-4 flex justify-between items-center">
+                <div className="bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 px-6 py-4 flex justify-between items-center">
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <FileText size={24} />
                     Your AI-Generated Resume
@@ -993,13 +997,12 @@ Requirements:
                           <span className="font-bold text-orange-700 dark:text-orange-400">
                             {item.keyword}
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            item.importance === 'High' 
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                              : item.importance === 'Medium'
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.importance === 'High'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                            : item.importance === 'Medium'
                               ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400'
                               : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                          }`}>
+                            }`}>
                             {item.importance}
                           </span>
                         </div>
@@ -1029,11 +1032,10 @@ Requirements:
                         transition={{ delay: i * 0.1 }}
                         className="flex items-start gap-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800"
                       >
-                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          gap.priority === 'High'
-                            ? 'bg-red-500 text-white'
-                            : 'bg-orange-500 text-white'
-                        }`}>
+                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${gap.priority === 'High'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-orange-500 text-white'
+                          }`}>
                           {gap.priority === 'High' ? '!' : '?'}
                         </div>
                         <div className="flex-1">
@@ -1042,11 +1044,10 @@ Requirements:
                             {gap.reason}
                           </p>
                         </div>
-                        <span className={`shrink-0 text-xs px-2 py-1 rounded-full font-medium ${
-                          gap.priority === 'High'
-                            ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                            : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400'
-                        }`}>
+                        <span className={`shrink-0 text-xs px-2 py-1 rounded-full font-medium ${gap.priority === 'High'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                          : 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400'
+                          }`}>
                           {gap.priority} Priority
                         </span>
                       </motion.div>

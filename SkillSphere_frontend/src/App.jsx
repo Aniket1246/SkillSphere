@@ -24,6 +24,7 @@ import CareerPersona from './pages/CareerPersona';
 import PortfolioBuilder from './pages/PortfolioBuilder';
 import PeerLearning from './pages/PeerLearning';
 import JobTrendTracker from './pages/JobTrendTracker';
+import QuizArena from './pages/QuizArena';
 
 const ResourceVault = React.lazy(() => import('./pages/ResourceVault'));
 
@@ -98,6 +99,7 @@ function App() {
             <Route path="/portfolio" element={<PortfolioBuilder user={user} />} />
             <Route path="/peer-learning" element={<PeerLearning user={user} />} />
             <Route path="/job-trends" element={<JobTrendTracker />} />
+            <Route path="/quiz-arena" element={<QuizArena user={user} />} />
             <Route
               path="/resourcevault"
               element={

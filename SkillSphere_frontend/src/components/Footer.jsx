@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-purple-400">EDGEx</h3>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">SkillSphere</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               Your all-in-one AI toolkit for career guidance, mood tracking, scholarship discovery, and more. Empowering Gen Z with intelligent tools.
             </p>
@@ -118,10 +118,10 @@ const Footer = () => {
               <div className="flex items-center space-x-3">
                 <Mail size={16} className="text-purple-400" />
                 <a
-                  href="mailto:support@edgex.ai"
+                  href="mailto:support@skillsphere.ai"
                   className="text-gray-400 hover:text-purple-400 transition-colors duration-300 text-sm"
                 >
-                  support@edgex.ai
+                  support@skillsphere.ai
                 </a>
               </div>
               <div className="flex items-center space-x-3">
@@ -145,7 +145,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-gray-400 text-sm">
-              © {currentYear} EDGEx by Ayushman. All rights reserved.
+              © {currentYear} SkillSphere by Ayushman. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors duration-300">

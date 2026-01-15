@@ -74,37 +74,88 @@ function ResumeAnalyzer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">Resume Analyzer (ATS)</h1>
-        <p className="text-gray-500 mb-4">Upload your resume (.pdf or .txt) or paste text below, then get an ATS-style score with improvement tips.</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a14] text-gray-900 dark:text-gray-100 py-12 px-4 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] bg-violet-500/10 rounded-full blur-[80px]" />
+        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-fuchsia-500/10 rounded-full blur-[80px]" />
+      </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="file"
-            accept=".pdf,.txt"
-            onChange={(e) => handleFile(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-          />
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent mb-4">
+            Resume Analyzer (ATS)
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+            Upload your resume or paste text to get an instant ATS compatibility score and actionable improvement tips.
+          </p>
         </div>
 
-        <textarea
-          className="w-full h-56 p-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="Paste your resume text here..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+        <div className="glass-card p-6 md:p-8 mb-8">
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Upload Resume (PDF/TXT)
+            </label>
+            <input
+              type="file"
+              accept=".pdf,.txt"
+              onChange={(e) => handleFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-500 
+                file:mr-4 file:py-3 file:px-6 
+                file:rounded-xl file:border-0 
+                file:text-sm file:font-semibold 
+                file:bg-violet-50 file:text-violet-700 
+                hover:file:bg-violet-100
+                dark:file:bg-violet-900/30 dark:file:text-violet-300
+                dark:hover:file:bg-violet-900/50
+                cursor-pointer transition-all"
+            />
+          </div>
 
-        <div className="mt-4 flex items-center gap-3">
-          <button onClick={analyze} className="px-5 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-semibold">Analyze</button>
-          {score !== null && <span className="text-sm text-gray-500">Score: <span className="font-semibold">{score}/100</span></span>}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Or Paste Text Directly
+            </label>
+            <textarea
+              className="input-field h-56 resize-none"
+              placeholder="Paste your resume text here..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button
+              onClick={analyze}
+              className="w-full sm:w-auto btn-primary px-8 py-3 flex items-center justify-center gap-2"
+            >
+              Analyze Resume
+            </button>
+
+            {score !== null && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700/50 rounded-xl">
+                <span className="text-sm text-gray-600 dark:text-gray-300">ATS Score:</span>
+                <span className={`text-xl font-bold ${score >= 80 ? 'text-green-500' : score >= 60 ? 'text-yellow-500' : 'text-red-500'
+                  }`}>
+                  {score}/100
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {tips.length > 0 && (
-          <div className="mt-6 p-4 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <h2 className="text-lg font-semibold mb-2">Suggestions</h2>
-            <ul className="list-disc pl-5 text-sm space-y-1">
-              {tips.map((t, i) => (<li key={i}>{t}</li>))}
+          <div className="glass-card p-6 md:p-8 animate-fade-in-up">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <span className="text-violet-500">✨</span> Suggestions for Improvement
+            </h2>
+            <ul className="space-y-3">
+              {tips.map((t, i) => (
+                <li key={i} className="flex items-start gap-3 text-gray-700 dark:text-gray-300 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0" />
+                  <span>{t}</span>
+                </li>
+              ))}
             </ul>
           </div>
         )}

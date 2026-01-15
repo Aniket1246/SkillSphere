@@ -33,94 +33,118 @@ function Home({ user }) {
 
   const features = [
     {
-      title: "Career Path Recommender",
-      desc: "AI-powered career suggestions based on your skills and interests.",
-      icon: <GraduationCap className="w-6 h-6 text-purple-400" />,
+      title: "🎯 AI Career Path Recommender",
+      desc: "Get personalized career suggestions analyzing your skills, education & interests with trending industry insights.",
+      icon: <GraduationCap className="w-8 h-8 text-purple-400" />,
       link: "/career-recommender",
+      badge: "NEW",
+      color: "from-purple-500 to-pink-500"
     },
     {
-      title: "Career Mentor",
-      desc: "Get career advice powered by your strengths and passions.",
-      icon: <GraduationCap className="w-6 h-6 text-purple-400" />,
-      link: "/careercrack",
+      title: "📝 AI Resume Builder",
+      desc: "Generate ATS-optimized resumes with AI feedback, keyword optimization & professional formatting.",
+      icon: <Sparkles className="w-8 h-8 text-blue-400" />,
+      link: "/resume-builder",
+      badge: "HOT",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "AI Resume Builder",
-      desc: "Generate ATS-optimized resumes with AI feedback & skill gap analysis.",
-      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
-      link: "/resume-builder"
+      title: "📊 Resume Analyzer",
+      desc: "Upload your resume for instant ATS score, improvement tips & keyword analysis.",
+      icon: <FileText className="w-8 h-8 text-green-400" />,
+      link: "/resume-analyzer",
+      badge: "POPULAR",
+      color: "from-green-500 to-emerald-500"
     },
     {
-      title: "Resume Analyzer",
-      desc: "Upload your resume for an ATS score and improvement tips.",
-      icon: <FileText className="w-6 h-6 text-purple-400" />,
-      link: "/resume-analyzer"
+      title: "📚 Personalized Learning Guide",
+      desc: "Identify skill gaps & get tailored course recommendations with progress tracking.",
+      icon: <BookOpen className="w-8 h-8 text-orange-400" />,
+      link: "/learning-guide",
+      badge: "NEW",
+      color: "from-orange-500 to-red-500"
     },
     {
-      title: "Learning Guide",
-      desc: "Personalized course recommendations to fill your skill gaps.",
-      icon: <BookOpen className="w-6 h-6 text-purple-400" />,
-      link: "/learning-guide"
-    },
-    {
-      title: "Interview Prep",
-      desc: "Practice with AI-powered mock interviews and get feedback.",
-      icon: <Target className="w-6 h-6 text-purple-400" />,
+      title: "🎤 Interactive Interview Prep",
+      desc: "Practice with live video mock interviews, AI feedback & real-time scoring.",
+      icon: <Target className="w-8 h-8 text-red-400" />,
       link: "/interview-prep",
+      badge: "HOT",
+      color: "from-red-500 to-pink-500"
     },
     {
-      title: "Career Persona",
-      desc: "Generate a professional summary of your career profile.",
-      icon: <Brain className="w-6 h-6 text-purple-400" />,
+      title: "👤 Career Persona Generator",
+      desc: "Create a professional profile summary showcasing your competencies & achievements.",
+      icon: <Brain className="w-8 h-8 text-teal-400" />,
       link: "/career-persona",
+      badge: "NEW",
+      color: "from-teal-500 to-cyan-500"
     },
     {
-      title: "Portfolio Builder",
-      desc: "Automatically compile your projects into a shareable portfolio.",
-      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
-      link: "/portfolio"
+      title: "💼 Portfolio Builder",
+      desc: "Auto-generate stunning HTML/CSS portfolios from your resume & projects.",
+      icon: <Sparkles className="w-8 h-8 text-indigo-400" />,
+      link: "/portfolio",
+      badge: "AMAZING",
+      color: "from-indigo-500 to-purple-500"
     },
     {
-      title: "Peer Learning",
-      desc: "Join mock interviews and study groups with peers.",
-      icon: <Target className="w-6 h-6 text-purple-400" />,
-      link: "/peer-learning"
+      title: "👥 Peer Learning Circles",
+      desc: "Join mock interviews, study groups & code reviews with peers.",
+      icon: <Target className="w-8 h-8 text-pink-400" />,
+      link: "/peer-learning",
+      badge: "NEW",
+      color: "from-pink-500 to-rose-500"
     },
     {
-      title: "Job Trend Tracker",
-      desc: "Real-time insights on role demand and salary trends.",
-      icon: <TrendingUp className="w-6 h-6 text-purple-400" />,
-      link: "/job-trends"
+      title: "📈 Job Trend Tracker",
+      desc: "Real-time job market insights, salary trends & demand scores for any role.",
+      icon: <TrendingUp className="w-8 h-8 text-yellow-400" />,
+      link: "/job-trends",
+      badge: "TRENDING",
+      color: "from-yellow-500 to-orange-500"
     },
     {
-      title: "Mood Mirror",
-      desc: "Chat with an AI that understands your emotions and tracks your mood.",
-      icon: <Brain className="w-6 h-6 text-purple-400" />,
+      title: "💬 Career Mentor",
+      desc: "Chat with AI for personalized career guidance & advice.",
+      icon: <GraduationCap className="w-8 h-8 text-purple-400" />,
+      link: "/careercrack",
+      color: "from-purple-500 to-indigo-500"
+    },
+    {
+      title: "🧠 Mood Mirror",
+      desc: "AI emotional support that understands you & tracks your mood.",
+      icon: <Brain className="w-8 h-8 text-blue-400" />,
       link: "/moodmirror",
+      color: "from-blue-500 to-purple-500"
     },
     {
-      title: "Scholarship Scout",
-      desc: "Find best-fit scholarships based on your background & interests.",
-      icon: <Target className="w-6 h-6 text-purple-400" />,
+      title: "🎓 Scholarship Scout",
+      desc: "Find perfect scholarships matching your profile & interests.",
+      icon: <Target className="w-8 h-8 text-green-400" />,
       link: "/scholarships",
+      color: "from-green-500 to-teal-500"
     },
     {
-      title: "Smart Notes",
-      desc: "Organize your notes with AI tagging and outlines.",
-      icon: <NotebookPen className="w-6 h-6 text-purple-400" />,
+      title: "📓 Smart Notes",
+      desc: "AI-powered note organization with tagging & outlines.",
+      icon: <NotebookPen className="w-8 h-8 text-orange-400" />,
       link: "/smartnotes",
+      color: "from-orange-500 to-yellow-500"
     },
     {
-      title: "Voice to Text",
-      desc: "Transcribe your ideas with whisper-accurate AI.",
-      icon: <Mic className="w-6 h-6 text-purple-400" />,
+      title: "🎙️ Voice to Text",
+      desc: "Transcribe your ideas with AI-powered accuracy.",
+      icon: <Mic className="w-8 h-8 text-red-400" />,
       link: "/voicefeedback",
+      color: "from-red-500 to-orange-500"
     },
     {
-      title: "Resource Vault",
-      desc: "Discover, upvote, and manage useful resources together.",
-      icon: <BookOpen className="w-6 h-6 text-purple-400" />,
-      link: "/resourcevault"
+      title: "📚 Resource Vault",
+      desc: "Discover & share curated learning resources with the community.",
+      icon: <BookOpen className="w-8 h-8 text-cyan-400" />,
+      link: "/resourcevault",
+      color: "from-cyan-500 to-blue-500"
     },
   ];
 
@@ -287,10 +311,10 @@ function Home({ user }) {
           className="z-10 max-w-4xl"
         >
           <h1 className="text-4xl md:text-6xl font-bold leading-tight text-gray-900 dark:text-white mb-6">
-            Think better with <span className="text-purple-400">EDGEx</span>
+            Think better with <span className="text-purple-400">SkillSphere</span>
           </h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
-            Your all-in-one AI toolkit: career mentor, mood companion, scholarship tracker & more.
+            Your all-in-one AI platform: career mentor, resume builder, interview coach & more.
           </p>
           <div className="flex justify-center items-center gap-4">
             <button
@@ -307,24 +331,55 @@ function Home({ user }) {
       </section>
 
       <section id="features" className="py-20 px-6 lg:px-20 bg-gray-100 dark:bg-[#0e0e1a]">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">What can EDGEx AI do?</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-gray-900 dark:text-white">
+        <h2 className="text-4xl font-bold text-center mb-4 text-gray-900 dark:text-white">
+          🚀 All-in-One Career Development Platform
+        </h2>
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-12 text-lg">
+          Everything you need to succeed in your career journey
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto text-gray-900 dark:text-white">
           {features.map((feat, i) => {
             const Card = (
               <motion.div
                 key={i}
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
                 viewport={{ once: true }}
-                className="bg-glass backdrop-blur-md p-6 rounded-xl border border-white/10 transition-[box-shadow,colors] duration-300 cursor-pointer flex flex-col justify-between h-full hover:shadow-2xl hover:border-white/20 hover:bg-white/5 text-gray-900 dark:text-white"
+                className={`relative bg-white dark:bg-[#1a1a2e] backdrop-blur-md p-6 rounded-2xl border-2 border-transparent hover:border-white/20 transition-all duration-300 cursor-pointer flex flex-col justify-between h-full shadow-lg hover:shadow-2xl overflow-hidden group`}
               >
-                <div className="flex items-center gap-3 mb-3">
-                  {feat.icon}
-                  <h3 className="text-xl font-semibold">{feat.title}</h3>
+                {/* Gradient Background on Hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+
+                {/* Badge */}
+                {feat.badge && (
+                  <div className="absolute top-4 right-4">
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r ${feat.color} text-white shadow-lg`}>
+                      {feat.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${feat.color} shadow-lg`}>
+                      {feat.icon}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 transition-all">
+                    {feat.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 flex-grow leading-relaxed">
+                    {feat.desc}
+                  </p>
                 </div>
-                <p className="text-gray-400 flex-grow">{feat.desc}</p>
+
+                {/* Arrow Icon */}
+                <div className="relative z-10 mt-4 flex items-center text-purple-500 dark:text-purple-400 font-semibold group-hover:translate-x-2 transition-transform">
+                  <span>Explore</span>
+                  <ArrowRight className="ml-2" size={18} />
+                </div>
               </motion.div>
             );
             return feat.link ? (
@@ -480,7 +535,7 @@ function Home({ user }) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-gray-700 dark:text-gray-400 text-lg mb-8"
           >
-            Start exploring EDGEx’s tools and get ahead in your academic & personal path.
+            Start exploring SkillSphere’s tools and get ahead in your academic & personal path.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

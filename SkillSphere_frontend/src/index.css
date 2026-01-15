@@ -1,27 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-	--bg: 255 255 255; /* rgb values for Tailwind-compatible utilities */
-	--text: 17 24 39;
-	--muted: 107 114 128;
+@layer base {
+  :root {
+    --bg-primary: 10 10 20;
+    --text-primary: 255 255 255;
+    --accent-primary: 139 92 246; /* Violet-500 */
+    --accent-secondary: 236 72 153; /* Pink-500 */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-[#0a0a14] dark:text-white font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
 }
 
-:root.dark, .dark {
-	--bg: 17 24 39;
-	--text: 226 232 240;
-	--muted: 148 163 184;
+@layer components {
+  .glass-card {
+    @apply bg-white/70 dark:bg-[#1a1a2e]/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
+  }
+  
+  .glass-panel {
+    @apply bg-white/40 dark:bg-black/40 backdrop-blur-md border border-white/10;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:shadow-lg hover:shadow-violet-600/30 hover:scale-105 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-xl font-semibold text-gray-800 dark:text-white bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400;
+  }
 }
 
-/* Use CSS variables in a small set of helpers so Tailwind utilities still apply */
-body {
-	background-color: rgb(var(--bg));
-	color: rgb(var(--text));
-	transition: background-color 200ms ease, color 200ms ease;
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-.no-scroll { overflow: hidden; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
 

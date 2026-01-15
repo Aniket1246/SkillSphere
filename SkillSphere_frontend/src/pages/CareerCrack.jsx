@@ -475,25 +475,28 @@ function CareerCrack({ user }) {
   };
 
   return (
-  <div>
+    <div>
       {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
-      <div className="flex min-h-screen bg-gradient-to-br from-[#ffe0ec] via-[#f8bbd0] to-[#f3d1f4] dark:from-[#2a004f] dark:via-[#3c1361] dark:to-[#1b0032] text-gray-900 dark:text-white font-[Poppins] transition-all duration-500 ease-in-out">
-        {/* Sidebar */}
-        <div className="w-64 bg-white/60 dark:bg-[#30104d]/60 backdrop-blur-xl border-r border-white/20 p-4 space-y-4 shadow-xl rounded-tr-3xl rounded-br-3xl transition-all duration-500">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold">💬 Your Chats</h2>
+      <div className="flex min-h-screen bg-gray-50 dark:bg-[#0a0a14] text-gray-900 dark:text-gray-100 font-[Poppins] transition-all duration-500 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] bg-violet-500/10 rounded-full blur-[80px]" />
+          <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-fuchsia-500/10 rounded-full blur-[80px]" />
+        </div>
 
-            <div className="flex items-center gap-2">
-              {/* Local dark mode toggle removed. Global theme toggle is in the Navbar. */}
-            </div>
+        {/* Sidebar */}
+        <div className="w-64 glass-card rounded-none h-screen border-t-0 border-b-0 border-l-0 z-10 flex flex-col p-4 shadow-xl backdrop-blur-xl">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <span className="text-violet-500">💬</span> Your Chats
+            </h2>
           </div>
 
-
-          <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-pink-100 to-purple-200 dark:from-purple-800 dark:to-fuchsia-900 rounded-xl">
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
             <span className="text-xs font-bold text-gray-800 dark:text-white">🧠 AI Mode</span>
             <button
               onClick={() => setUseGroq(!useGroq)}
-              className="text-xs bg-white/70 dark:bg-purple-700 px-3 py-1 rounded-full font-bold hover:bg-white dark:hover:bg-purple-600 transition shadow"
+              className="text-xs bg-white dark:bg-gray-700 px-3 py-1 rounded-full font-bold hover:shadow-md transition-all shadow-sm"
             >
               {useGroq ? "🌐 Groq" : "💻 Local"}
             </button>
@@ -504,61 +507,73 @@ function CareerCrack({ user }) {
               setMessages([]);
               setSelectedChatId(null);
             }}
-            className="flex items-center gap-2 text-sm bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white w-full py-2 px-3 rounded-full hover:scale-105 shadow-xl transition-all duration-300"
+            className="w-full btn-primary flex items-center justify-center gap-2 mb-4 py-2 text-sm shadow-md"
           >
             <PlusCircle size={16} /> New Chat
           </button>
 
-          {history.map((chat) => (
-            <div
-              key={chat.id}
-              className={`p-2 rounded-xl cursor-pointer hover:scale-[1.02] hover:bg-white/40 dark:hover:bg-purple-800 transition-all shadow-sm ${
-                selectedChatId === chat.id
-                  ? "bg-white/50 dark:bg-purple-700"
-                  : ""
-              }`}
-              onClick={() => loadChat(chat.id)}
-            >
-              <input
-                className="bg-transparent font-medium text-sm w-full"
-                defaultValue={chat.title}
-                onBlur={(e) => renameChat(chat.id, e.target.value)}
-              />
-              {chat.createdAt?.seconds && (
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  🕒 {new Date(chat.createdAt.seconds * 1000).toLocaleString()}
-                </p>
-              )}
-            </div>
-          ))}
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            {history.map((chat) => (
+              <div
+                key={chat.id}
+                className={`p-3 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-transparent ${selectedChatId === chat.id
+                    ? "bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-700/50"
+                    : ""
+                  }`}
+                onClick={() => loadChat(chat.id)}
+              >
+                <input
+                  className="bg-transparent font-medium text-sm w-full outline-none text-gray-700 dark:text-gray-200"
+                  defaultValue={chat.title}
+                  onBlur={(e) => renameChat(chat.id, e.target.value)}
+                />
+                {chat.createdAt?.seconds && (
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                    {new Date(chat.createdAt.seconds * 1000).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 p-6 animate-fade-in">
+        <div className="flex-1 p-6 z-10 flex flex-col h-screen">
           <div className="flex justify-center items-center mb-6">
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-500 to-fuchsia-500 bg-clip-text text-transparent drop-shadow-lg">
+            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent drop-shadow-sm">
               CareerCrack
             </h1>
           </div>
 
-          <div className="h-96 overflow-y-auto space-y-4 p-4 bg-white/70 dark:bg-[#2a004f]/60 backdrop-blur-xl rounded-3xl border border-white/30 shadow-2xl animate-slide-in-up transition-all">
-            {messages.map((msg, i) => (
-              <ChatBubble key={i} role={msg.role} text={msg.text} />
-            ))}
+          <div className="flex-1 overflow-y-auto space-y-4 p-6 glass-card mb-4">
+            {messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
+                <div className="w-20 h-20 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-4xl">👋</span>
+                </div>
+                <h3 className="text-xl font-bold mb-2">Hello there!</h3>
+                <p>I'm your AI Career Mentor. Ask me anything.</p>
+              </div>
+            ) : (
+              messages.map((msg, i) => (
+                <ChatBubble key={i} role={msg.role} text={msg.text} />
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="mt-4">
-            <ChatInput onSend={handleSend} disabled={isAiTyping} />
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <ChatInput onSend={handleSend} disabled={isAiTyping} />
+            </div>
+            <button
+              onClick={exportChatToPDF}
+              className="p-3 glass-card rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-all text-violet-600 dark:text-violet-400"
+              title="Export to PDF"
+            >
+              <Eye size={24} />
+            </button>
           </div>
-
-          <button
-            onClick={exportChatToPDF}
-            className="mt-6 flex items-center gap-2 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
-          >
-            📄 Export Chat
-            <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">PDF</span>
-          </button>
         </div>
       </div>
     </div>

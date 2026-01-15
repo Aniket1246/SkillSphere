@@ -26,7 +26,7 @@ function JobTrendTracker() {
   const searchTrends = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const response = await axios.post("http://127.0.0.1:5000/job-trends/search", {
         role: searchQuery,
@@ -43,19 +43,25 @@ function JobTrendTracker() {
   const quickSearch = (role) => {
     setSearchQuery(role);
     setLoading(true);
-    
+
     axios.post("http://127.0.0.1:5000/job-trends/search", {
       role: role,
       location: location,
     })
-    .then(response => setTrends(response.data))
-    .catch(error => console.error("Error:", error))
-    .finally(() => setLoading(false));
+      .then(response => setTrends(response.data))
+      .catch(error => console.error("Error:", error))
+      .finally(() => setLoading(false));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-900 dark:via-blue-900 dark:to-cyan-900 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a14] text-gray-900 dark:text-gray-100 py-12 px-4 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[10%] w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[80px]" />
+        <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-cyan-500/10 rounded-full blur-[80px]" />
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,7 +70,7 @@ function JobTrendTracker() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-4">
             Job Trend Tracker
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
             Real-time insights on job demand, salaries, and market trends
           </p>
         </motion.div>
@@ -73,7 +79,7 @@ function JobTrendTracker() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8"
+          className="glass-card p-8 mb-8"
         >
           <form onSubmit={searchTrends} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -87,7 +93,7 @@ function JobTrendTracker() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="e.g., Software Engineer, Data Scientist"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="input-field pl-10"
                     required
                   />
                   <Briefcase className="absolute left-3 top-3.5 text-gray-400" size={20} />
@@ -104,7 +110,7 @@ function JobTrendTracker() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="e.g., San Francisco, Remote"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="input-field pl-10"
                   />
                   <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />
                 </div>
@@ -114,7 +120,7 @@ function JobTrendTracker() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Search size={20} />
               {loading ? "Searching..." : "Search Trends"}
@@ -154,7 +160,7 @@ function JobTrendTracker() {
           >
             {/* Key Metrics */}
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="glass-card p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                     <TrendingUp className="text-green-600" size={24} />
@@ -167,7 +173,7 @@ function JobTrendTracker() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="glass-card p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                     <DollarSign className="text-blue-600" size={24} />
@@ -180,7 +186,7 @@ function JobTrendTracker() {
                 </p>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="glass-card p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
                     <Briefcase className="text-purple-600" size={24} />
@@ -195,7 +201,7 @@ function JobTrendTracker() {
             </div>
 
             {/* Top Skills Required */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="glass-card p-6">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
                 <BarChart3 className="text-blue-600" />
                 Top Skills Required
@@ -219,7 +225,7 @@ function JobTrendTracker() {
             </div>
 
             {/* Top Companies Hiring */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="glass-card p-6">
               <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                 Top Companies Hiring
               </h3>
@@ -237,7 +243,7 @@ function JobTrendTracker() {
             </div>
 
             {/* Growth Projections */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="glass-card p-6">
               <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                 Growth Projections
               </h3>
@@ -259,7 +265,7 @@ function JobTrendTracker() {
 
             {/* Related Roles */}
             {trends.relatedRoles && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="glass-card p-6">
                 <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                   Related Roles
                 </h3>
@@ -281,7 +287,7 @@ function JobTrendTracker() {
 
         {/* Empty State */}
         {!trends && !loading && (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
+          <div className="text-center py-12 glass-card rounded-2xl">
             <BarChart3 size={64} className="mx-auto mb-4 text-gray-400" />
             <p className="text-gray-500 dark:text-gray-400">
               Search for a job role to see market trends and insights
