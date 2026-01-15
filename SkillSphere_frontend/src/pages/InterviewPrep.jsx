@@ -210,20 +210,29 @@ function InterviewPrep({ user }) {
     setSessionState("completed");
     stopMedia();
     setLoading(true);
-    // Generate Feedback
+
+    // Generate Real AI Feedback
     try {
-      // Simulated feedback call
-      setTimeout(() => {
-        setFeedback({
-          score: 8.5,
-          strengths: ["Clear communication", "Good eye contact", "Structured answers"],
-          improvements: ["Reduce filler words", "Go deeper into technical details"],
-          suggestedAnswer: "Your answer was good, but mentioning specific metrics would improve impact."
-        });
-        setLoading(false);
-      }, 2000);
+      // Use the LAST question and transcript for feedback provided context
+      // In a full app, we'd send the whole history
+      const response = await axios.post("http://127.0.0.1:5000/interview-feedback", {
+        question: questions[questionIndex], // The last question asked
+        transcript: transcript,
+        type: interviewType
+      });
+
+      setFeedback(response.data);
     } catch (e) {
-      toast.error("Failed to generate feedback");
+      console.error("Feedback error:", e);
+      toast.error("Failed to generate AI feedback");
+      // Fallback only on error
+      setFeedback({
+        score: 5.0,
+        strengths: ["Participation"],
+        improvements: ["Could not reach AI server"],
+        suggestedAnswer: "Please check your connection."
+      });
+    } finally {
       setLoading(false);
     }
   };

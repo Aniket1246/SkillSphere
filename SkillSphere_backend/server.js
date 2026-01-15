@@ -126,7 +126,9 @@ async function callGroqAPI(messages, temperature = 0.7) {
         },
       }
     );
-    return response.data.choices[0].message.content;
+    const content = response.data.choices[0].message.content;
+    console.log("Groq API Response (First 100 chars):", content.substring(0, 100));
+    return content;
   } catch (error) {
     console.error("Groq API error:", error.response?.data || error.message);
     throw error;
@@ -177,9 +179,9 @@ app.post("/career-recommend", async (req, res) => {
     Format as valid JSON only.`;
 
     const aiResponse = await callGroqAPI([
-      { role: "system", content: "You are a career counselor. Respond only with valid JSON." },
+      { role: "system", content: "You are a creative career counselor. Respond only with valid JSON." },
       { role: "user", content: prompt }
-    ]);
+    ], 0.9); // Higher temperature for variety
 
     const parsed = JSON.parse(aiResponse);
     res.json(parsed);
